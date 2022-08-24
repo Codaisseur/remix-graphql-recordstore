@@ -22,6 +22,7 @@ const typeDefs = /* GraphQL */ `
   type Query {
     viewer: User!
     notes: [Note]!
+    note(id: ID!): Note
   }
 
   type Mutation {

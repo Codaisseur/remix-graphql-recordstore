@@ -1,45 +1,67 @@
-import type { ActionFunction, LoaderFunction } from "@remix-run/node";
-import { json, redirect } from "@remix-run/node";
-import { Form, useCatch, useLoaderData } from "@remix-run/react";
+import { useMutation, useQuery } from "@apollo/client";
+import type { ActionFunction } from "@remix-run/node";
+import { redirect } from "@remix-run/node";
+import { Form, useCatch, useNavigate, useParams } from "@remix-run/react";
+import { FormEventHandler } from "react";
 import invariant from "tiny-invariant";
-
-import { deleteNote } from "~/models/note.server";
-import { getNote } from "~/models/note.server";
-import { requireUserId } from "~/session.server";
-
-type LoaderData = {
-  note: NonNullable<Awaited<ReturnType<typeof getNote>>>;
-};
-
-export const loader: LoaderFunction = async ({ request, params }) => {
-  const userId = await requireUserId(request);
-  invariant(params.noteId, "noteId not found");
-
-  const note = await getNote({ userId, id: params.noteId });
-  if (!note) {
-    throw new Response("Not Found", { status: 404 });
-  }
-  return json<LoaderData>({ note });
-};
-
-export const action: ActionFunction = async ({ request, params }) => {
-  const userId = await requireUserId(request);
-  invariant(params.noteId, "noteId not found");
-
-  await deleteNote({ userId, id: params.noteId });
-
-  return redirect("/notes");
-};
+import {
+  DeleteNoteDocument,
+  NoteDocument,
+  NotesDocument,
+} from "~/graphql/graphql-operations";
 
 export default function NoteDetailsPage() {
-  const data = useLoaderData() as LoaderData;
+  const params = useParams();
+  const navigate = useNavigate();
+
+  invariant(params.noteId, "ID param not found");
+
+  const { data, loading } = useQuery(NoteDocument, {
+    variables: {
+      id: params.noteId,
+    },
+  });
+
+  const [deleteNote] = useMutation(DeleteNoteDocument);
+
+  const onDelete: FormEventHandler<HTMLFormElement> = (e) => {
+    e.preventDefault();
+
+    const noteId = params.noteId;
+    invariant(noteId, "This should never happen");
+
+    deleteNote({
+      variables: {
+        id: noteId,
+      },
+      update: (cache, mutationResult) => {
+        const { data } = mutationResult;
+        if (!data) return; // Cancel updating the cache if no data is returned from mutation.
+        const result = cache.readQuery({
+          query: NotesDocument,
+        });
+        if (!result) return;
+        cache.writeQuery({
+          query: NotesDocument,
+          data: { notes: result.notes.filter((n) => n?.id !== noteId) },
+        });
+
+        navigate("/notes");
+      },
+      errorPolicy: "all",
+    });
+  };
+
+  if (loading) {
+    return <p>Loading..</p>;
+  }
 
   return (
     <div>
-      <h3 className="text-2xl font-bold">{data.note.title}</h3>
-      <p className="py-6">{data.note.body}</p>
+      <h3 className="text-2xl font-bold">{data?.note?.title}</h3>
+      <p className="py-6">{data?.note?.body}</p>
       <hr className="my-4" />
-      <Form method="post">
+      <Form method="post" onSubmit={onDelete}>
         <button
           type="submit"
           className="rounded bg-blue-500  py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400"

@@ -1,11 +1,20 @@
 import { Form, Link, NavLink, Outlet } from "@remix-run/react";
-import { useUser } from "~/utils";
+import { useOptionalUser } from "~/utils";
 import { NotesDocument } from "~/graphql/graphql-operations";
 import { useQuery } from "@apollo/client";
+import type { LoaderFunction } from "@remix-run/server-runtime";
+import { redirect, json } from "@remix-run/server-runtime";
+import { getUserId } from "~/session.server";
+
+export const loader: LoaderFunction = async ({ request }) => {
+  const userId = await getUserId(request);
+  if (!userId) return redirect("/login");
+  return json({});
+};
 
 export default function NotesPage() {
   const { data } = useQuery(NotesDocument);
-  const user = useUser();
+  const user = useOptionalUser();
 
   return (
     <div className="flex h-full min-h-screen flex-col">
@@ -13,7 +22,7 @@ export default function NotesPage() {
         <h1 className="text-3xl font-bold">
           <Link to=".">Notes</Link>
         </h1>
-        <p>{user.email}</p>
+        <p>{user?.email}</p>
         <Form action="/logout" method="post">
           <button
             type="submit"

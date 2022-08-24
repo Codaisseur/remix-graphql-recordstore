@@ -1,4 +1,10 @@
-import { createNote, deleteNote, getNoteListItems } from "~/models/note.server";
+import invariant from "tiny-invariant";
+import {
+  createNote,
+  deleteNote,
+  getNote,
+  getNoteListItems,
+} from "~/models/note.server";
 import type { Resolvers } from "./resolvers-types";
 
 const resolvers: Resolvers = {
@@ -7,8 +13,15 @@ const resolvers: Resolvers = {
       return context.user;
     },
     notes(_parent, _args, context, _info) {
-      console.log(context.user);
+      invariant(context.user, "You need to sign in to see your notes.");
       return getNoteListItems({ userId: context.user?.id });
+    },
+    note(_parent, args, context, _info) {
+      invariant(context.user, "You need to sign in to see your notes.");
+      return getNote({
+        userId: context.user?.id,
+        id: args.id,
+      });
     },
   },
   Mutation: {
