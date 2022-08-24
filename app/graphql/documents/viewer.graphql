@@ -1,0 +1,10 @@
+query Viewer {
+  viewer {
+    ...UserFragment
+  }
+}
+
+fragment UserFragment on User {
+  id
+  email
+}

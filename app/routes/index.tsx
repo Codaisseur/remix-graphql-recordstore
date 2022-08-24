@@ -1,9 +1,47 @@
-import { Link } from "@remix-run/react";
-
-import { useOptionalUser } from "~/utils";
+import { useMutation, useQuery } from "@apollo/client";
+import { Form, Link } from "@remix-run/react";
+import {
+  UpdateEmailDocument,
+  ViewerDocument,
+} from "~/graphql/graphql-operations";
+import { useState } from "react";
 
 export default function Index() {
-  const user = useOptionalUser();
+  const { data } = useQuery(ViewerDocument);
+  const [newEmail, setnewEmail] = useState("");
+  const [updateMutation] = useMutation(UpdateEmailDocument);
+
+  const onChangeName: React.FormEventHandler<HTMLFormElement> = (e) => {
+    e.preventDefault();
+    updateMutation({
+      variables: {
+        email: newEmail,
+      },
+      // Follow apollo suggestion to update cache
+      //  https://www.apollographql.com/docs/angular/features/cache-updates/#update
+      update: (cache, mutationResult) => {
+        const { data } = mutationResult;
+        if (!data) return; // Cancel updating name in cache if no data is returned from mutation.
+        // Read the data from our cache for this query.
+        const result = cache.readQuery({
+          query: ViewerDocument,
+        });
+        const newViewer = result ? { ...result.viewer } : null;
+        // Add our comment from the mutation to the end.
+        // Write our data back to the cache.
+        if (newViewer) {
+          newViewer.email = data.updateEmail.email;
+          cache.writeQuery({
+            query: ViewerDocument,
+            data: { viewer: newViewer },
+          });
+        }
+      },
+    });
+  };
+
+  const viewer = data?.viewer;
+
   return (
     <main className="relative min-h-screen bg-white sm:flex sm:items-center sm:justify-center">
       <div className="relative sm:pb-16 sm:pt-8">
@@ -28,12 +66,12 @@ export default function Index() {
                 project deployed.
               </p>
               <div className="mx-auto mt-10 max-w-sm sm:flex sm:max-w-none sm:justify-center">
-                {user ? (
+                {viewer ? (
                   <Link
                     to="/notes"
                     className="flex items-center justify-center rounded-md border border-transparent bg-white px-4 py-3 text-base font-medium text-red-700 shadow-sm hover:bg-red-50 sm:px-8"
                   >
-                    View Notes for {user.email}
+                    View Notes for {viewer.email}
                   </Link>
                 ) : (
                   <div className="space-y-4 sm:mx-auto sm:inline-grid sm:grid-cols-2 sm:gap-5 sm:space-y-0">
@@ -61,6 +99,24 @@ export default function Index() {
               </a>
             </div>
           </div>
+        </div>
+
+        <div className="mx-auto max-w-7xl py-2 px-4">
+          <Form method="post" onSubmit={onChangeName}>
+            <input
+              type="email"
+              className="flex-1 rounded-md border-2 border-blue-500 px-3 text-lg leading-loose"
+              placeholder="Change name..."
+              onChange={(e) => setnewEmail(e.target.value)}
+              name="email"
+            />
+            <button
+              className="flex items-center justify-center rounded-md border border-transparent bg-white px-4 py-3 text-base font-medium text-red-700 shadow-sm hover:bg-red-50 sm:px-8"
+              type="submit"
+            >
+              Change email
+            </button>
+          </Form>
         </div>
 
         <div className="mx-auto max-w-7xl py-2 px-4 sm:px-6 lg:px-8">

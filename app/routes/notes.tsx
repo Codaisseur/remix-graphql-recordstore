@@ -1,23 +1,10 @@
-import type { LoaderFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import { Form, Link, NavLink, Outlet, useLoaderData } from "@remix-run/react";
-
-import { requireUserId } from "~/session.server";
+import { Form, Link, NavLink, Outlet } from "@remix-run/react";
 import { useUser } from "~/utils";
-import { getNoteListItems } from "~/models/note.server";
-
-type LoaderData = {
-  noteListItems: Awaited<ReturnType<typeof getNoteListItems>>;
-};
-
-export const loader: LoaderFunction = async ({ request }) => {
-  const userId = await requireUserId(request);
-  const noteListItems = await getNoteListItems({ userId });
-  return json<LoaderData>({ noteListItems });
-};
+import { NotesDocument } from "~/graphql/graphql-operations";
+import { useQuery } from "@apollo/client";
 
 export default function NotesPage() {
-  const data = useLoaderData() as LoaderData;
+  const { data } = useQuery(NotesDocument);
   const user = useUser();
 
   return (
@@ -45,11 +32,11 @@ export default function NotesPage() {
 
           <hr />
 
-          {data.noteListItems.length === 0 ? (
+          {data?.notes.length === 0 ? (
             <p className="p-4">No notes yet</p>
           ) : (
             <ol>
-              {data.noteListItems.map((note) => (
+              {data?.notes.map((note) => (
                 <li key={note.id}>
                   <NavLink
                     className={({ isActive }) =>

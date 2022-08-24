@@ -1,0 +1,16 @@
+query Notes {
+  notes {
+    ...NoteListItemFragment
+  }
+}
+
+fragment NoteListItemFragment on Note {
+  id
+  title
+}
+
+fragment NoteFragment on Note {
+  id
+  title
+  body
+}

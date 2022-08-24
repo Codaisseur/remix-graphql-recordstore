@@ -1,0 +1,14 @@
+schema:
+  - "app/graphql/schema.ts":
+      noRequire: true
+documents: ./app/graphql/documents/*.graphql
+generates:
+  ./app/graphql/graphql-operations.ts:
+    plugins:
+      - typescript
+      - typescript-operations
+      - typed-document-node
+  ./app/graphql/resolvers-types.ts:
+    plugins:
+      - typescript
+      - typescript-resolvers

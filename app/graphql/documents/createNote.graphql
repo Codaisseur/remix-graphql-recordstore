@@ -1,0 +1,5 @@
+mutation CreateNote($title: String!, $body: String!) {
+  createNote(note: { title: $title, body: $body }) {
+    ...NoteFragment
+  }
+}

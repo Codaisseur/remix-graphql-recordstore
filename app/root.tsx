@@ -15,6 +15,8 @@ import {
 
 import tailwindStylesheetUrl from "./styles/tailwind.css";
 import { getUser } from "./session.server";
+import { useContext } from "react";
+import ApolloContext from "./context/apollo";
 
 export const links: LinksFunction = () => {
   return [
@@ -41,6 +43,10 @@ export const loader: LoaderFunction = async ({ request }) => {
 };
 
 export default function App() {
+  const initialState = useContext(ApolloContext);
+
+  console.log({ initialState });
+
   return (
     <html lang="en" className="h-full">
       <head>
@@ -52,6 +58,13 @@ export default function App() {
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.__INITIAL_STATE__=${JSON.stringify(
+              initialState
+            ).replace(/</g, "\\u003c")};`,
+          }}
+        />
       </body>
     </html>
   );
