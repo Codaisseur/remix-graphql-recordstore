@@ -4,6 +4,7 @@ import {
   deleteNote,
   getNote,
   getNoteListItems,
+  updateNote,
 } from "~/models/note.server";
 import type { Resolvers } from "./resolvers-types";
 
@@ -38,6 +39,16 @@ const resolvers: Resolvers = {
         });
       }
       throw new Error("You need to be signed in to create notes!");
+    },
+    updateNote(_parent, args, context, _info) {
+      if (context.user) {
+        return updateNote({
+          id: args.id,
+          ...args.update,
+          userId: context.user.id,
+        });
+      }
+      throw new Error("You need to be signed in to update your notes!");
     },
     deleteNote(_parent, args, context, _info) {
       if (context.user) {

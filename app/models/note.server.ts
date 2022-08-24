@@ -75,6 +75,33 @@ export async function createNote({
   };
 }
 
+export async function updateNote({
+  id,
+  body,
+  title,
+  userId,
+}: Pick<Note, "id" | "body" | "title" | "userId">): Promise<Note | null> {
+  const db = await arc.tables();
+
+  const note = await getNote({ id, userId });
+
+  if (!note) return null;
+
+  await db.note.update({
+    Key: { HashKey: "pk" },
+    UpdateExpression: "set title = :title, body = :body",
+    ConditionExpression: "sk = :sk, pk = :pk",
+    ExpressionAttributeValues: {
+      ":title": title,
+      ":body": body,
+      ":sk": idToSk(id),
+      ":pk": userId,
+    },
+  });
+
+  return { ...note, title, body };
+}
+
 export async function deleteNote({ id, userId }: Pick<Note, "id" | "userId">) {
   const db = await arc.tables();
   return db.note.delete({ pk: userId, sk: idToSk(id) });
