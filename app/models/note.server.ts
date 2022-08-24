@@ -50,6 +50,7 @@ export async function getNoteListItems({
   return result.Items.map((n: any) => ({
     title: n.title,
     id: skToId(n.sk),
+    body: n.body,
   }));
 }
 
