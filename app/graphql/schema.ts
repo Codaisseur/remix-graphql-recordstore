@@ -21,7 +21,7 @@ const typeDefs = /* GraphQL */ `
 
   type Query {
     viewer: User!
-    notes: [Note]!
+    notes: [Note!]!
     note(id: ID!): Note
   }
 
