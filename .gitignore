@@ -11,3 +11,5 @@ sam.yaml
 /cypress/videos
 
 /app/styles/tailwind.css
+app/graphql/graphql-operations.ts
+app/graphql/resolvers-types.ts
