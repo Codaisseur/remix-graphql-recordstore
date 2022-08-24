@@ -61,7 +61,7 @@ export type NoteInput = {
 
 export type Query = {
   __typename?: 'Query';
-  notes: Array<Note>;
+  notes: Array<Maybe<Note>>;
   viewer: User;
 };
 
@@ -89,7 +89,7 @@ export type DeleteNoteMutation = { __typename?: 'Mutation', deleteNote?: { __typ
 export type NotesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type NotesQuery = { __typename?: 'Query', notes: Array<{ __typename?: 'Note', id: string, title: string }> };
+export type NotesQuery = { __typename?: 'Query', notes: Array<{ __typename?: 'Note', id: string, title: string } | null> };
 
 export type NoteListItemFragmentFragment = { __typename?: 'Note', id: string, title: string };
 

@@ -62,7 +62,7 @@ export type NoteInput = {
 
 export type Query = {
   __typename?: 'Query';
-  notes: Array<Note>;
+  notes: Array<Maybe<Note>>;
   viewer: User;
 };
 
@@ -185,7 +185,7 @@ export type NoteIdResolvers<ContextType = any, ParentType extends ResolversParen
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  notes?: Resolver<Array<ResolversTypes['Note']>, ParentType, ContextType>;
+  notes?: Resolver<Array<Maybe<ResolversTypes['Note']>>, ParentType, ContextType>;
   viewer?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
 };
 
